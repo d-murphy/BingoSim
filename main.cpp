@@ -23,52 +23,89 @@ std::vector<int> selectNRandom(int start, int n, int possSpcCt){
     return std::vector<int>(options.begin(), options.begin() + n); 
 }
 
-std::map<int, bool> convertToMap(std::vector<int> spaces){
-    std::map<int, bool> m; 
-    for(int i: spaces) {
-        m[i] = false; 
-    }; 
-    return m; 
-}
+// std::map<int, bool> convertToMap(std::vector<int> spaces){
+//     std::map<int, bool> m; 
+//     for(int i: spaces) {
+//         m[i] = false; 
+//     }; 
+//     return m; 
+// }
 
-std::vector<std::map<int,bool>> makeCard(){
-    std::vector<std::map<int, bool>> card; 
+std::vector<std::vector<int>> makeCard(){
+    std::vector<std::vector<int>> card; 
     std::vector<int> starts {1, 16, 31, 46, 61}; 
     for (int i = 0; i < starts.size(); i++){
-        int spacesNeeded = i == 2 ? 4 : 5; 
-        std::vector<int> spaces = selectNRandom(starts[i], spacesNeeded, POSS_COL_NUMS); 
-        auto newMap = convertToMap(spaces); 
-        card.push_back(newMap); 
+//        int spacesNeeded = i == 2 ? 4 : 5; 
+        std::vector<int> spaces = selectNRandom(starts[i], 5, POSS_COL_NUMS); 
+        card.push_back(spaces); 
     }; 
     return card; 
+}
+
+std::vector<std::vector<bool>> makeMakers(){
+    std::vector<std::vector<bool>> markers {
+        {0,0,0,0,0},
+        {0,0,0,0,0},
+        {0,0,1,0,0},
+        {0,0,0,0,0},
+        {0,0,0,0,0},
+    }; 
+    return markers; 
+}
+
+int getIndex(std::vector<int> v, int toFind){
+    auto it = std::find(v.begin(), v.end(), toFind); 
+    if (it != v.end()) {
+        int index = it - v.begin(); 
+        return index; 
+    } else {
+        return -1; 
+    }
 }
 
 class Card {
     public: 
         Card() {
             card = makeCard(); 
+            markers = makeMakers(); 
         }
         void Print(){
-            for(auto & col: card) {
-                auto it = col.begin(); 
-                while(it != col.end()){
-                    std::cout << it->first << " " << it->second << std::endl; 
-                    it++; 
-                }; 
+            
+            for(int i = 0; i<5; i++) {
+                for(int j=0; j<5; j++) {
+                    bool marked = markers[j][i]; 
+                    bool freeSpaceAdjust = i == 2 && j == 2; 
+                    int space = card[j][i]; 
+                    std::string text = freeSpaceAdjust ? "Free!" : std::to_string(space); 
+                    std::string withHighlight = marked ?                 
+                        "\033[1;31m" + text + "\033[0m" : text; 
+
+                    std::cout << withHighlight << "\t" ; 
+                }
                 std::cout << std::endl; 
             }
+            std::cout << std::endl; 
         }
         void markSpace(int numberCalled){
-            int col = std::floor((numberCalled - 1) / 15); 
-            auto & colMap = card[col]; 
-            if(colMap.count(numberCalled)){
-//                std::cout << "You got one!" << std::endl; 
-                colMap[numberCalled] = true; 
+            int colInd = std::floor((numberCalled - 1) / 15); 
+            auto col = card[colInd]; 
+            int spaceInd = getIndex(col, numberCalled); 
+            if(spaceInd >= 0){
+                markers[colInd][spaceInd] = 1; 
             }
         }
+        void countMarked(){
+            int markedCt = 0; 
+            for(auto col : markers){
+                for(auto space: col){
+                    if(space) markedCt++; 
+                }
+            }
+            std::cout << "the marked count: " << markedCt << std::endl; 
+        }
     private: 
-        std::vector<std::map<int, bool>> card;
-
+        std::vector<std::vector<int>> card;
+        std::vector<std::vector<bool>> markers; 
 };
 
 class Round {
@@ -83,7 +120,7 @@ class Round {
         }
         void callNumber(){
             int numCalled = numbersCalled.back(); 
-//            std::cout << "The next number is: " << numCalled << std::endl; 
+            std::cout << "The next number is: " << numCalled << std::endl; 
             for(auto & card: cards){
                 card.markSpace(numCalled); 
             }; 
@@ -92,7 +129,7 @@ class Round {
         }
         void printCards(){
             for(auto & card: cards){
-                std::cout << "Next card: " << std::endl; 
+                card.countMarked(); 
                 card.Print(); 
             }; 
         }
@@ -115,20 +152,29 @@ class Round {
 
 int main(){
     std::cout << std::endl; 
-    Round round(3); 
+    Round round(4); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
-    round.callNumber(); 
-    round.callNumber(); 
+    round.printCards(); 
     round.callNumber(); 
     round.printCards(); 
     std::cout << "After " << round.getNumSpacesCalled() << " called." << std::endl; 
